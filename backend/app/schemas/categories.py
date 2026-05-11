@@ -1,4 +1,5 @@
-from pydantic import BaseModel, UUID4
+from pydantic import BaseModel
+from uuid import UUID
 from typing import Optional
 from datetime import datetime
 
@@ -14,11 +15,11 @@ class CategoryUpdate(BaseModel):
 
 
 class CategoryResponse(BaseModel):
-    id: UUID4
+    id: UUID
     name: str
     icon: Optional[str]
     is_default: bool
-    user_id: Optional[UUID4]
+    user_id: Optional[UUID]
     created_at: datetime
 
     class Config:
