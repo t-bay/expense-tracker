@@ -1,11 +1,12 @@
-from pydantic import BaseModel, UUID4, field_validator
+from pydantic import BaseModel, field_validator
+from uuid import UUID
 from typing import Optional
 from datetime import datetime
 from app.schemas.expenses import CurrencyCode
 
 
 class BudgetCreate(BaseModel):
-    category_id: UUID4
+    category_id: UUID
     amount: float
     currency: CurrencyCode
     month: int
@@ -32,9 +33,9 @@ class BudgetUpdate(BaseModel):
 
 
 class BudgetResponse(BaseModel):
-    id: UUID4
-    user_id: UUID4
-    category_id: UUID4
+    id: UUID
+    user_id: UUID
+    category_id: UUID
     amount: float
     currency: CurrencyCode
     month: int

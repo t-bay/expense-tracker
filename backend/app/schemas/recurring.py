@@ -1,11 +1,12 @@
-from pydantic import BaseModel, UUID4
+from pydantic import BaseModel
+from uuid import UUID
 from typing import Optional
 from datetime import datetime, date
 from app.schemas.expenses import CurrencyCode
 
 
 class RecurringCreate(BaseModel):
-    category_id: UUID4
+    category_id: UUID
     amount: float
     currency: CurrencyCode
     description: Optional[str] = None
@@ -22,9 +23,9 @@ class RecurringUpdate(BaseModel):
 
 
 class RecurringResponse(BaseModel):
-    id: UUID4
-    user_id: UUID4
-    category_id: UUID4
+    id: UUID
+    user_id: UUID
+    category_id: UUID
     amount: float
     currency: CurrencyCode
     description: Optional[str]
