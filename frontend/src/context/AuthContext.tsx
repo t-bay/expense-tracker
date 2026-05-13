@@ -18,25 +18,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
+    // Set up auth state listener FIRST before getting session
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+      (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
       }
     );
 
+    // Then get the current session
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
+
     return () => subscription.unsubscribe();
   }, []);
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    setSession(null);
+    setUser(null);
   };
 
   return (

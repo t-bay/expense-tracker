@@ -1,11 +1,20 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from jose import jwt, JWTError
 from pydantic import BaseModel
+import jwt
+from jwt import PyJWKClient
 from app.config import get_settings
+import functools
 
 settings = get_settings()
 bearer_scheme = HTTPBearer()
+
+# Cache the JWKS client — it fetches Supabase's public keys
+# and caches them so we don't hit the network on every request
+@functools.lru_cache()
+def get_jwks_client():
+    jwks_url = f"{settings.supabase_url}/auth/v1/.well-known/jwks.json"
+    return PyJWKClient(jwks_url)
 
 
 class AuthenticatedUser(BaseModel):
@@ -20,13 +29,13 @@ async def get_current_user(
     token = credentials.credentials
 
     try:
-        # Decode the JWT issued by Supabase
-        # Supabase signs tokens with the JWT secret found in
-        # Project Settings → API → JWT Settings → JWT Secret
+        jwks_client = get_jwks_client()
+        signing_key = jwks_client.get_signing_key_from_jwt(token)
+
         payload = jwt.decode(
             token,
-            settings.supabase_jwt_secret,
-            algorithms=["HS256"],
+            signing_key.key,
+            algorithms=["ES256", "HS256"],
             options={"verify_aud": False}
         )
 
@@ -43,9 +52,15 @@ async def get_current_user(
 
         return AuthenticatedUser(id=user_id, email=email, role=role)
 
-    except JWTError:
+    except jwt.ExpiredSignatureError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials",
+            detail="Token has expired",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Could not validate credentials: {str(e)}",
             headers={"WWW-Authenticate": "Bearer"},
         )
