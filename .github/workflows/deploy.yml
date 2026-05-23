@@ -28,7 +28,7 @@ jobs:
             echo "Deploying to staging..."
           fi
           cd backend
-          railway up --service backend --project 7d98d94c-c981-476e-999e-ee059b695317
+          railway up --service backend --project 7d98d94c-c981-476e-999e-ee059b695317 --environment fe67376c-98db-4db8-a0f5-6aae854515d2
 
   # ── Deploy Frontend to Vercel ─────────────────────────────
   deploy-frontend:
