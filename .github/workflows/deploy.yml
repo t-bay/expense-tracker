@@ -32,7 +32,7 @@ jobs:
           fi
 
   # ── Deploy Frontend to Vercel ─────────────────────────────
-    deploy-frontend:
+  deploy-frontend:
     name: Deploy Frontend to Vercel
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
