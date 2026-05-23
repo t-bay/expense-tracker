@@ -5,19 +5,12 @@ on:
     branches: [develop, main]
 
 jobs:
-  deploy-frontend:
-    name: Deploy Frontend to Vercel
+  notify:
+    name: Deployment Triggered
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Deploy to Vercel
-        uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          working-directory: ./frontend
-          vercel-args: ${{ github.ref == 'refs/heads/main' && '--prod' || '' }}
+      - name: Notify
+        run: |
+          echo "Push to ${{ github.ref }} detected."
+          echo "Railway and Vercel will handle deployments automatically via GitHub integration."
+          echo "Check Railway dashboard and Vercel dashboard for deployment status."
