@@ -32,12 +32,14 @@ jobs:
 
       - name: Create environment file
         working-directory: frontend
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
         run: |
-          cat > .env.local << EOF
-          VITE_SUPABASE_URL=${{ secrets.SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
-          VITE_API_URL=${{ secrets.VITE_API_URL || 'https://your-railway-app.railway.app' }}
-          EOF
+          printf 'VITE_SUPABASE_URL=%s\n' "$SUPABASE_URL" > .env.local
+          printf 'VITE_SUPABASE_ANON_KEY=%s\n' "$SUPABASE_ANON_KEY" >> .env.local
+          printf 'VITE_API_URL=%s\n' "${VITE_API_URL:-https://your-railway-app.railway.app}" >> .env.local
 
       - name: Type check
         working-directory: frontend
