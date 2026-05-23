@@ -5,36 +5,10 @@ on:
     branches: [develop, main]
 
 jobs:
-  # ── Deploy Backend to Railway ──────────────────────────────
-  deploy-backend:
-    name: Deploy Backend to Railway
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Install Railway CLI
-        run: npm install -g @railway/cli
-
-      - name: Deploy to Railway
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-          GITHUB_REF: ${{ github.ref }}
-        run: |
-          if [ "$GITHUB_REF" == "refs/heads/main" ]; then
-            echo "Deploying to production..."
-          else
-            echo "Deploying to staging..."
-          fi
-          cd backend
-          railway up --service backend --project 7d98d94c-c981-476e-999e-ee059b695317 --environment fe67376c-98db-4db8-a0f5-6aae854515d2
-
   # ── Deploy Frontend to Vercel ─────────────────────────────
   deploy-frontend:
     name: Deploy Frontend to Vercel
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
 
     steps:
       - name: Checkout code
@@ -51,17 +25,23 @@ jobs:
         working-directory: frontend
         run: npm ci
 
-      - name: Install Vercel CLI
-        run: npm install -g vercel
-
       - name: Create environment file
         working-directory: frontend
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
         run: |
-          cat > .env.local << EOF
-          VITE_SUPABASE_URL=${{ secrets.SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
-          VITE_API_URL=${{ secrets.VITE_API_URL }}
-          EOF
+          printf 'VITE_SUPABASE_URL=%s\n' "$SUPABASE_URL" > .env.local
+          printf 'VITE_SUPABASE_ANON_KEY=%s\n' "$SUPABASE_ANON_KEY" >> .env.local
+          printf 'VITE_API_URL=%s\n' "$VITE_API_URL" >> .env.local
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel
 
       - name: Deploy to Vercel
         working-directory: frontend
@@ -69,11 +49,12 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          GITHUB_REF: ${{ github.ref }}
         run: |
-          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+          if [ "$GITHUB_REF" == "refs/heads/main" ]; then
             echo "Deploying to production..."
-            vercel --prod --token=$VERCEL_TOKEN --yes
+            vercel --prod --token=$VERCEL_TOKEN --yes --prebuilt
           else
             echo "Deploying to staging (preview)..."
-            vercel --token=$VERCEL_TOKEN --yes
+            vercel --token=$VERCEL_TOKEN --yes --prebuilt
           fi
