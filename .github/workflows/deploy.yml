@@ -9,7 +9,6 @@ jobs:
   deploy-backend:
     name: Deploy Backend to Railway
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
 
     steps:
       - name: Checkout code
@@ -19,17 +18,17 @@ jobs:
         run: npm install -g @railway/cli
 
       - name: Deploy to Railway
-        working-directory: backend
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          GITHUB_REF: ${{ github.ref }}
         run: |
-          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+          if [ "$GITHUB_REF" == "refs/heads/main" ]; then
             echo "Deploying to production..."
-            railway up --service backend
           else
             echo "Deploying to staging..."
-            railway up --service backend
           fi
+          cd backend
+          railway up --service backend --project 7d98d94c-c981-476e-999e-ee059b695317
 
   # ── Deploy Frontend to Vercel ─────────────────────────────
   deploy-frontend:
