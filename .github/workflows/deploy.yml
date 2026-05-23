@@ -1,0 +1,64 @@
+name: Deploy
+
+on:
+  push:
+    branches: [develop, main]
+
+jobs:
+  # ── Deploy Backend to Railway ──────────────────────────────
+  deploy-backend:
+    name: Deploy Backend to Railway
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Deploy to Railway
+        working-directory: backend
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            echo "Deploying to production..."
+            railway up --service backend
+          else
+            echo "Deploying to staging..."
+            railway up --service backend
+          fi
+
+  # ── Deploy Frontend to Vercel ─────────────────────────────
+  deploy-frontend:
+    name: Deploy Frontend to     name: Deploy Frontend to     name: Deploy Frontend to     name: Deploy Frontend to     name: Deploy Frontend to     name:     - name: Checkout    name: Deploy Frontend to     nut    name: Deploy Front up N    name: Deploy Frontend to     name: Deploy Frontend to     name: Deploersion   20"
+                                                                /package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel
+
+      - name: Create environment      - name: working-directory: frontend
+        run: |
+          cat > .env.local << EOF
+          VITE_SUPABASE_URL=${{ se          VITE_SUPABASE_URL=${{ se     PA          VIT=$          VITE_SUPABASE_URL=${{ se        V          VITE_SUPABASE_URL=${{ se     
+            F
+
+
+           F
+_SUPABASE_URL=${{ se          VITE_SUPABASE_URL=${{ se     PA          VIT=$          VITE_SUPABASE_URL=${{ sTOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            echo "Deploying to production..."
+            vercel --prod --token=$VERCEL_TOKEN --yes
+          else
+            echo "Deploying to staging (preview)..."
+            vercel --token=$VERCEL_TOKEN --yes
+          fi
